@@ -524,7 +524,7 @@ final class SenderController: ObservableObject {
                 guard let self, !Task.isCancelled else { return }
                 self.startBrowsing()
             }
-            line = "WiFi discovery: failed (\(error)), restarting in \(delay.components.seconds)s"
+            line = "WiFi discovery: failed (\(error)), restarting in \(delay)s"
         default:
             return
         }
