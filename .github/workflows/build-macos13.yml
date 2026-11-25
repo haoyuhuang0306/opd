@@ -1,0 +1,52 @@
+name: Build OpenDisplay for macOS 13
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build OpenDisplay
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project OpenSidecar.xcodeproj \
+            -scheme OpenSidecarMac \
+            -configuration Release \
+            -derivedDataPath build \
+            MACOSX_DEPLOYMENT_TARGET=13.0 \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            build
+
+      - name: Package application
+        run: |
+          APP="build/Build/Products/Release/OpenDisplay.app"
+          test -d "$APP"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$APP" OpenDisplay-macOS13-M1.zip
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenDisplay-macOS13-M1
+          path: OpenDisplay-macOS13-M1.zip
+          if-no-files-found: error
